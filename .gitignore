@@ -1,0 +1,28 @@
+# Environment
+.env
+.claude/
+
+
+
+# Dependencies
+node_modules/
+scripts/package-lock.json
+
+# Runtime / temp files
+/tmp/
+logs/
+*.log
+
+# Generated digests (served from nginx / docker volume, not committed)
+out/
+output/
+
+# Docker
+docker-compose.override.yml
+Dockerfile
+docker-compose.yml
+docker/
+
+# OS
+.DS_Store
+Thumbs.db

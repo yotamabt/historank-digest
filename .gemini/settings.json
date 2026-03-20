@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "historank": {
+      "httpUrl": "${HISTORANK_MCP_URL}",
+      "timeout": 30000,
+      "trust": true
+    },
+    "wavespeed": {
+      "command": "node",
+      "args": ["${DIGEST_DIR}/wavespeed-mcp/index.js"],
+      "env": {
+        "WAVESPEED_API_KEY": "$WAVESPEED_API_KEY",
+        "WAVESPEED_MODEL": "$WAVESPEED_MODEL"
+      },
+      "timeout": 360000,
+      "trust": true
+    }
+  }
+}
