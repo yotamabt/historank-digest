@@ -1,6 +1,6 @@
 Today is {DATE}. Generate the daily HistoRank digest.
 
-Follow the full workflow described in GEMINI.md exactly — do not skip steps.
+Follow the full workflow described in AGENT.md exactly — do not skip steps.
 
 Pick a theme that is fresh, original, and has strong narrative potential. Avoid
 themes used in the last 7 days. Be bold: choose an angle that surprises, a

@@ -357,7 +357,7 @@ async function runDeepSeek(systemPrompt, userPrompt, tools) {
 
 async function main() {
   const userPrompt = fs.readFileSync(promptFile, "utf8");
-  const systemPromptFile = path.join(DIGEST_DIR, "GEMINI.md");
+  const systemPromptFile = path.join(DIGEST_DIR, "AGENT.md");
   const systemPrompt = fs.existsSync(systemPromptFile)
     ? fs.readFileSync(systemPromptFile, "utf8")
     : "";

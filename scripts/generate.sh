@@ -141,7 +141,7 @@ for attempt in $(seq 1 "$AGENT_RETRIES"); do
     # expansion at write time — the script reads the files when it executes.
     CLAUDE_SCRIPT=$(mktemp /tmp/claude-run-XXXXXX.sh)
     export _CLAUDE_MCP="$CLAUDE_MCP_RUNTIME"
-    export _CLAUDE_SYSTEM="$DIGEST_DIR/GEMINI.md"
+    export _CLAUDE_SYSTEM="$DIGEST_DIR/AGENT.md"
     export _CLAUDE_PROMPT="$PROMPT_TODAY"
     # When su is used, HOME stays as root's home (su -p preserves env).
     # Resolve the target user's real home now so the script can override it.
@@ -216,10 +216,10 @@ CLAUDE_EOF
     log "Codex config written to ${HOME}/.codex/config.toml"
 
     # codex exec runs non-interactively.
-    # There is no --instructions flag; prepend GEMINI.md to the prompt instead.
+    # There is no --instructions flag; prepend AGENT.md to the prompt instead.
     # --json emits JSONL which postprocess.js handles via its text fallback.
     # --ephemeral avoids persisting session state between runs.
-    CODEX_PROMPT="$(cat "${DIGEST_DIR}/GEMINI.md")
+    CODEX_PROMPT="$(cat "${DIGEST_DIR}/AGENT.md")
 
 ---
 
