@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "historank": {
+      "type": "http",
+      "url": "${HISTORANK_MCP_URL}"
+    },
+    "wavespeed": {
+      "command": "node",
+      "args": ["/app/wavespeed-mcp/index.js"],
+      "env": {
+        "WAVESPEED_API_KEY": "${WAVESPEED_API_KEY}",
+        "WAVESPEED_MODEL": "${WAVESPEED_MODEL}"
+      }
+    }
+  }
+}

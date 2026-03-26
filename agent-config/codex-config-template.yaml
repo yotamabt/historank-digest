@@ -1,0 +1,21 @@
+# OpenAI Codex CLI configuration for HistoRank digest agent
+# Docs: https://github.com/openai/codex
+#
+# Note: this file is a template — ${VAR} placeholders are substituted at
+# runtime by generate.sh using envsubst before being passed to codex --config.
+
+model: o4-mini
+
+# The MCP servers provide historank event data and image generation.
+# google_web_search and web_fetch are built-in to the Codex CLI.
+mcpServers:
+  historank:
+    type: http
+    url: "${HISTORANK_MCP_URL}"
+  wavespeed:
+    command: node
+    args:
+      - /app/wavespeed-mcp/index.js
+    env:
+      WAVESPEED_API_KEY: "${WAVESPEED_API_KEY}"
+      WAVESPEED_MODEL: "${WAVESPEED_MODEL}"

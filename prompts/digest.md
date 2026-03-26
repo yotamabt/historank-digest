@@ -14,4 +14,8 @@ context, recent scholarship, and any detail that sharpens the story.
 Generate one hero image via the wavespeed MCP tool. Make the prompt painterly
 and evocative — not photorealistic.
 
-Output the complete JSON object and nothing else.
+Output the complete JSON object and nothing else. The object MUST include every
+required top-level field: id, date, theme, narrative, events, model_analysis,
+sources, and images. Omitting any of these fields — especially model_analysis —
+will cause the pipeline to fail. Double-check your output before finishing.
+

@@ -18,6 +18,7 @@ out/
 output/
 
 # Docker
+.dockerignore
 docker-compose.override.yml
 Dockerfile
 docker-compose.yml

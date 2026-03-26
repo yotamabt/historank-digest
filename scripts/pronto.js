@@ -24,7 +24,12 @@ export async function uploadImageFromUrl(sourceUrl, filename) {
   if (!apiKey) throw new Error("PRONTO_API_KEY is not set.");
 
   // 1. Download the image
-  const imgRes = await fetch(sourceUrl);
+  let imgRes;
+  try {
+    imgRes = await fetch(sourceUrl);
+  } catch (err) {
+    throw new Error(`Network error fetching image from ${sourceUrl}: ${err.message}`);
+  }
   if (!imgRes.ok) {
     throw new Error(`Failed to fetch image from ${sourceUrl}: HTTP ${imgRes.status}`);
   }
@@ -38,15 +43,20 @@ export async function uploadImageFromUrl(sourceUrl, filename) {
   const form = new FormData();
   form.append("file", new Blob([webpBuffer], { type: "image/webp" }), name);
 
-  const uploadRes = await fetch(`${PRONTO_BASE_URL}/upload`, {
+  let uploadRes;
+  try {
+    uploadRes = await fetch(`${PRONTO_BASE_URL}/upload`, {
     method: "POST",
     headers: {
       Authorization: `ApiKey ${apiKey}`,
       Accept: "application/json",
       // Note: do NOT set Content-Type manually — fetch sets it with the boundary
     },
-    body: form,
-  });
+      body: form,
+    });
+  } catch (err) {
+    throw new Error(`Network error uploading to Pronto.io: ${err.message}`);
+  }
 
   if (!uploadRes.ok) {
     const errText = await uploadRes.text();
