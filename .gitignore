@@ -24,6 +24,9 @@ Dockerfile
 docker-compose.yml
 docker/
 
+# VPS setup scripts (local ops, not part of the project)
+setup-vps.sh
+
 # OS
 .DS_Store
 Thumbs.db

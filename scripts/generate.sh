@@ -19,9 +19,9 @@ DIGEST_DIR="${DIGEST_DIR:-$(dirname "$SCRIPT_DIR")}"
 # Load environment variables from .env (overrides profile values where set)
 ENV_FILE="${DIGEST_DIR}/.env"
 if [[ -f "$ENV_FILE" ]]; then
-  # Strip Windows CRLF line endings before sourcing
+  # Strip Windows CRLF line endings before sourcing; set -a auto-exports all variables
   # shellcheck disable=SC1090
-  source <(sed 's/\r//' "$ENV_FILE")
+  set -a; source <(sed 's/\r//' "$ENV_FILE"); set +a
 else
   echo "[generate.sh] WARNING: .env file not found at ${ENV_FILE}" >&2
 fi
