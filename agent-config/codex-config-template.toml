@@ -12,7 +12,7 @@ url = "${HISTORANK_MCP_URL}"
 
 [mcp_servers.wavespeed]
 command = "node"
-args = ["/app/wavespeed-mcp/index.js"]
+args = ["${DIGEST_DIR}/wavespeed-mcp/index.js"]
 
 [mcp_servers.wavespeed.env]
 WAVESPEED_API_KEY = "${WAVESPEED_API_KEY}"

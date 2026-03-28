@@ -261,7 +261,7 @@ required unless marked optional.
   // Metadata
   "meta": {
     "event_count": 12,          // Must equal events array length
-    "model": "gemini-2.5-flash"   // The Gemini model that generated this digest
+    "model": "<filled in by pipeline — leave this field empty string>"
   }
 }
 ```

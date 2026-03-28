@@ -209,7 +209,7 @@ CLAUDE_EOF
     # Substitute env vars into the TOML config template and write to the
     # location codex reads automatically: ~/.codex/config.toml
     mkdir -p "$HOME/.codex"
-    envsubst '${CODEX_MODEL} ${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL}' \
+    envsubst '${CODEX_MODEL} ${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL} ${DIGEST_DIR}' \
         < "${DIGEST_DIR}/agent-config/codex-config-template.toml" \
         > "$HOME/.codex/config.toml"
 

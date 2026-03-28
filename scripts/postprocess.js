@@ -239,6 +239,17 @@ if (!Array.isArray(digestJson.sources) || digestJson.sources.length === 0) {
 }
 
 // images[] (new) or hero_image (legacy) — at least one must be present
+if (Array.isArray(digestJson.images)) {
+  const before = digestJson.images.length;
+  digestJson.images = digestJson.images.filter((img) => {
+    if (!img.id) { log(`WARNING: Image missing "id" — skipping.`); return false; }
+    if (!img.url) { log(`WARNING: Image "${img.id}" has no URL (generation may have failed) — skipping.`); return false; }
+    return true;
+  });
+  if (digestJson.images.length < before) {
+    log(`WARNING: ${before - digestJson.images.length} image(s) dropped due to missing URL.`);
+  }
+}
 if (!Array.isArray(digestJson.images) || digestJson.images.length === 0) {
   if (!digestJson.hero_image?.url) {
     die(`Digest must have either "images" array (new) or "hero_image.url" (legacy).`);
@@ -246,9 +257,6 @@ if (!Array.isArray(digestJson.images) || digestJson.images.length === 0) {
   log("WARNING: using legacy hero_image field. Consider upgrading to images[].");
 } else {
   log(`Images: ${digestJson.images.length} found.`);
-  for (const img of digestJson.images) {
-    if (!img.id || !img.url) die(`Each image must have "id" and "url". Found: ${JSON.stringify(img)}`);
-  }
 }
 
 // visualizations[] — optional but validate shape if present
