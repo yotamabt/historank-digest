@@ -6,7 +6,7 @@
     },
     "wavespeed": {
       "command": "node",
-      "args": ["/app/wavespeed-mcp/index.js"],
+      "args": ["${DIGEST_DIR}/wavespeed-mcp/index.js"],
       "env": {
         "WAVESPEED_API_KEY": "${WAVESPEED_API_KEY}",
         "WAVESPEED_MODEL": "${WAVESPEED_MODEL}"

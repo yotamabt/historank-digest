@@ -126,7 +126,7 @@ for attempt in $(seq 1 "$AGENT_RETRIES"); do
   elif [[ "$DIGEST_AGENT" == "claude" ]]; then
     # Substitute env vars into the MCP config template
     CLAUDE_MCP_RUNTIME="/tmp/claude-mcp.json"
-    envsubst '${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL}' \
+    envsubst '${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL} ${DIGEST_DIR}' \
         < "${DIGEST_DIR}/agent-config/claude-mcp-template.json" \
         > "$CLAUDE_MCP_RUNTIME"
 
@@ -210,10 +210,10 @@ CLAUDE_EOF
     # location codex reads automatically: ~/.codex/config.toml
     mkdir -p "$HOME/.codex"
     envsubst '${CODEX_MODEL} ${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL} ${DIGEST_DIR}' \
-        < "${DIGEST_DIR}/agent-config/codex-config-template.toml" \
-        > "$HOME/.codex/config.toml"
+        < "${DIGEST_DIR}/agent-config/codex-config-template.yaml" \
+        > "$HOME/.codex/config.yaml"
 
-    log "Codex config written to ${HOME}/.codex/config.toml"
+    log "Codex config written to ${HOME}/.codex/config.yaml"
 
     # codex exec runs non-interactively.
     # There is no --instructions flag; prepend AGENT.md to the prompt instead.

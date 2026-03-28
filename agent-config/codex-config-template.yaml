@@ -4,7 +4,7 @@
 # Note: this file is a template — ${VAR} placeholders are substituted at
 # runtime by generate.sh using envsubst before being passed to codex --config.
 
-model: o4-mini
+model: ${CODEX_MODEL}
 
 # The MCP servers provide historank event data and image generation.
 # google_web_search and web_fetch are built-in to the Codex CLI.
@@ -15,7 +15,7 @@ mcpServers:
   wavespeed:
     command: node
     args:
-      - /app/wavespeed-mcp/index.js
+      - ${DIGEST_DIR}/wavespeed-mcp/index.js
     env:
       WAVESPEED_API_KEY: "${WAVESPEED_API_KEY}"
       WAVESPEED_MODEL: "${WAVESPEED_MODEL}"
