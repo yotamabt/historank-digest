@@ -274,7 +274,7 @@ required unless marked optional.
 - You have a maximum of 80 tool-call turns. Budget them carefully.
 - If a tool call fails, retry it **at most once** with a corrected input. If it fails again, move on — do not retry the same call repeatedly.
 - If a MCP tool or web search returns an empty or unhelpful result, accept it and continue with what you have. Do not loop trying variations of the same query.
-- If `wavespeed.generate_image` fails, skip the image and set `url` to `""`. Never retry image generation more than once per image.
+- If `wavespeed.generate_image` fails, omit that image entirely from the `images` array. Never retry image generation more than once per image.
 - If you are stuck and cannot make progress after 2 attempts on any single step, skip that step and write the best digest you can with what you have.
 
 **Output format**

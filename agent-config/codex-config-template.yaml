@@ -19,3 +19,4 @@ mcpServers:
     env:
       WAVESPEED_API_KEY: "${WAVESPEED_API_KEY}"
       WAVESPEED_MODEL: "${WAVESPEED_MODEL}"
+      PATH: "${PATH}"
