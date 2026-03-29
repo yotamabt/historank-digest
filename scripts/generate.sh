@@ -143,6 +143,8 @@ for attempt in $(seq 1 "$AGENT_RETRIES"); do
     export _CLAUDE_MCP="$CLAUDE_MCP_RUNTIME"
     export _CLAUDE_SYSTEM="$DIGEST_DIR/AGENT.md"
     export _CLAUDE_PROMPT="$PROMPT_TODAY"
+    export _CLAUDE_BIN
+    _CLAUDE_BIN="$(command -v claude)"
     # When su is used, HOME stays as root's home (su -p preserves env).
     # Resolve the target user's real home now so the script can override it.
     if [[ -n "${CLAUDE_USER:-}" ]]; then
@@ -154,7 +156,7 @@ for attempt in $(seq 1 "$AGENT_RETRIES"); do
 # Fix HOME/USER so Claude doesn't detect a root environment
 export HOME="$_CLAUDE_HOME"
 export USER="$(id -un)"
-exec claude \
+exec "$_CLAUDE_BIN" \
     --output-format stream-json \
     --verbose \
     --mcp-config "$_CLAUDE_MCP" \
@@ -214,7 +216,7 @@ CLAUDE_EOF
     # Substitute env vars into the TOML config template and write to the
     # location codex reads automatically: ~/.codex/config.toml
     mkdir -p "$HOME/.codex"
-    envsubst '${CODEX_MODEL} ${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL} ${DIGEST_DIR} ${PATH}' \
+    envsubst '${CODEX_MODEL} ${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL} ${DIGEST_DIR} ${PATH} ${NODE_PATH}' \
         < "${DIGEST_DIR}/agent-config/codex-config-template.yaml" \
         > "$HOME/.codex/config.yaml"
 

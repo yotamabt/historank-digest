@@ -20,3 +20,4 @@ mcpServers:
       WAVESPEED_API_KEY: "${WAVESPEED_API_KEY}"
       WAVESPEED_MODEL: "${WAVESPEED_MODEL}"
       PATH: "${PATH}"
+      NODE_PATH: "${NODE_PATH}"
