@@ -144,7 +144,12 @@ for attempt in $(seq 1 "$AGENT_RETRIES"); do
     export _CLAUDE_SYSTEM="$DIGEST_DIR/AGENT.md"
     export _CLAUDE_PROMPT="$PROMPT_TODAY"
     export _CLAUDE_BIN
-    _CLAUDE_BIN="$(command -v claude)"
+    # Prefer /usr/local/bin/claude (accessible to all users) over a root-home install
+    if [[ -x /usr/local/bin/claude ]]; then
+      _CLAUDE_BIN=/usr/local/bin/claude
+    else
+      _CLAUDE_BIN="$(command -v claude)"
+    fi
     # When su is used, HOME stays as root's home (su -p preserves env).
     # Resolve the target user's real home now so the script can override it.
     if [[ -n "${CLAUDE_USER:-}" ]]; then
