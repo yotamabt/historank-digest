@@ -180,7 +180,12 @@ CLAUDE_EOF
     TAIL_ERR_PID=$!
 
     if [[ -n "${CLAUDE_USER:-}" ]]; then
-      timeout "$AGENT_TIMEOUT" gosu "$CLAUDE_USER" bash "$CLAUDE_SCRIPT" \
+      if command -v gosu &>/dev/null; then
+        _RUN_AS="gosu $CLAUDE_USER"
+      else
+        _RUN_AS="sudo -u $CLAUDE_USER"
+      fi
+      timeout "$AGENT_TIMEOUT" $_RUN_AS bash "$CLAUDE_SCRIPT" \
           < /dev/null \
           > "$CLAUDE_STDOUT_TMP" \
           2> "$CLAUDE_STDERR_TMP" || EXIT_CODE=$?
