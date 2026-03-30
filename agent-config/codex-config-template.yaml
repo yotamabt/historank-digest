@@ -8,7 +8,7 @@ model: ${CODEX_MODEL}
 
 # The MCP servers provide historank event data and image generation.
 # google_web_search and web_fetch are built-in to the Codex CLI.
-mcpServers:
+mcp_servers:
   historank:
     type: http
     url: "${HISTORANK_MCP_URL}"
