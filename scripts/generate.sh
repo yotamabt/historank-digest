@@ -16,7 +16,7 @@ unset _profile
 # when running non-interactively so that node/codex/claude are on PATH
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 # shellcheck disable=SC1091
-[[ -f "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh" --no-use
+[[ -f "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
 
 # Resolve DIGEST_DIR to the directory containing this script if not already set
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -237,7 +237,7 @@ CLAUDE_EOF
     if [[ -x /usr/local/bin/codex ]]; then
       _CODEX_BIN=/usr/local/bin/codex
     else
-      _CODEX_BIN="$(command -v codex)"
+      _CODEX_BIN="$(command -v codex 2>/dev/null || true)"
     fi
     log "Using codex binary: ${_CODEX_BIN}"
 
