@@ -12,6 +12,12 @@ for _profile in "$HOME/.bash_profile" "$HOME/.profile"; do
 done
 unset _profile
 
+# nvm is typically loaded in .bashrc (not .bash_profile), so source it explicitly
+# when running non-interactively so that node/codex/claude are on PATH
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+# shellcheck disable=SC1091
+[[ -f "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh" --no-use
+
 # Resolve DIGEST_DIR to the directory containing this script if not already set
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIGEST_DIR="${DIGEST_DIR:-$(dirname "$SCRIPT_DIR")}"
@@ -227,6 +233,14 @@ CLAUDE_EOF
 
     log "Codex config written to ${HOME}/.codex/config.yaml"
 
+    # Resolve codex binary (prefer globally accessible path)
+    if [[ -x /usr/local/bin/codex ]]; then
+      _CODEX_BIN=/usr/local/bin/codex
+    else
+      _CODEX_BIN="$(command -v codex)"
+    fi
+    log "Using codex binary: ${_CODEX_BIN}"
+
     # codex exec runs non-interactively.
     # There is no --instructions flag; prepend AGENT.md to the prompt instead.
     # --json emits JSONL which postprocess.js handles via its text fallback.
@@ -245,7 +259,7 @@ $(cat "$PROMPT_TODAY")"
     tail -f "$CODEX_STDERR_TMP" >&2 &
     CODEX_TAIL_ERR_PID=$!
 
-    timeout "$AGENT_TIMEOUT" codex exec \
+    timeout "$AGENT_TIMEOUT" "$_CODEX_BIN" exec \
         --full-auto \
         --json \
         --ephemeral \
