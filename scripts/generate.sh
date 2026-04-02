@@ -233,8 +233,10 @@ CLAUDE_EOF
 
     log "Codex config written to ${HOME}/.codex/config.yaml"
 
-    # Resolve codex binary (prefer globally accessible path)
-    if [[ -x /usr/local/bin/codex ]]; then
+    # Resolve codex binary: explicit env var > /usr/local/bin > PATH
+    if [[ -n "${CODEX_BIN:-}" && -x "$CODEX_BIN" ]]; then
+      _CODEX_BIN="$CODEX_BIN"
+    elif [[ -x /usr/local/bin/codex ]]; then
       _CODEX_BIN=/usr/local/bin/codex
     else
       _CODEX_BIN="$(command -v codex 2>/dev/null || true)"
