@@ -227,10 +227,25 @@ for (const field of REQUIRED_FIELDS) {
     die(`Digest JSON is missing required field: "${field}"`);
   }
 }
-// model_analysis is best-effort — agents sometimes hit token limits before writing it
-if (!digestJson.model_analysis) {
-  log("WARNING: model_analysis field is missing — agent may have been truncated.");
-  digestJson.model_analysis = {};
+// model_analysis with all 4 tendencies is required — frontend crashes without it
+if (!digestJson.model_analysis || typeof digestJson.model_analysis !== "object") {
+  die(`"model_analysis" field is missing. The agent must produce this section.`);
+}
+if (!digestJson.model_analysis.tendencies || typeof digestJson.model_analysis.tendencies !== "object") {
+  die(`"model_analysis.tendencies" is missing. All four model keys (gemini, chatgpt, claude, deepseek) are required.`);
+}
+for (const m of ["gemini", "chatgpt", "claude", "deepseek"]) {
+  if (typeof digestJson.model_analysis.tendencies[m] !== "string" || !digestJson.model_analysis.tendencies[m].trim()) {
+    die(`"model_analysis.tendencies.${m}" is missing or empty. All four model tendency keys are required.`);
+  }
+}
+if (!Array.isArray(digestJson.model_analysis.most_agreed)) {
+  log("WARNING: model_analysis.most_agreed is missing — defaulting to [].");
+  digestJson.model_analysis.most_agreed = [];
+}
+if (!Array.isArray(digestJson.model_analysis.most_disputed)) {
+  log("WARNING: model_analysis.most_disputed is missing — defaulting to [].");
+  digestJson.model_analysis.most_disputed = [];
 }
 // sources is best-effort — some agents hit token limits before writing it
 if (!Array.isArray(digestJson.sources) || digestJson.sources.length === 0) {
@@ -308,6 +323,16 @@ for (const event of digestJson.events) {
     }
     if (typeof event.ratings[modelKey].score !== "number") {
       log(`WARNING: ${eventLabel} ratings.${modelKey}.score is not a number — skipping.`);
+      complete = false;
+      break;
+    }
+    if (typeof event.ratings[modelKey].explanation !== "string") {
+      log(`WARNING: ${eventLabel} ratings.${modelKey}.explanation is not a string — skipping.`);
+      complete = false;
+      break;
+    }
+    if (typeof event.ratings[modelKey].category !== "string") {
+      log(`WARNING: ${eventLabel} ratings.${modelKey}.category is not a string — skipping.`);
       complete = false;
       break;
     }
