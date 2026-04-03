@@ -30,6 +30,10 @@ explanations are the heart of the product — do not invent or estimate them.
 ### 2. `wavespeed` MCP
 Exposes one tool: `generate_image`.
 
+**You MUST use `wavespeed.generate_image` for ALL image generation. Do not use any
+built-in image generation tools, skills, or scripts — they produce local file paths
+that cannot be served to users. Only `wavespeed.generate_image` returns a usable URL.**
+
 Parameters:
 - `prompt` (required) — describe the image you want. Be painterly, atmospheric,
   art-historical. Reference a style or movement if it fits the theme.
