@@ -205,6 +205,31 @@ required unless marked optional.
     }
   ],
 
+  // Cross-model analysis section — REQUIRED. Write this BEFORE the events array.
+  // Missing or incomplete model_analysis will cause the pipeline to fail and the
+  // digest will not be published.
+  "model_analysis": {
+    // 2-4 paragraphs of markdown prose comparing how the four models approached
+    // the events. Be specific: name events, quote scores, describe patterns.
+    "summary": "Markdown prose comparing how the 4 models treated these events",
+
+    // One-sentence characterization of each model's consistent tendencies
+    // across this digest's events. ALL FOUR KEYS ARE REQUIRED — omitting any
+    // one will cause a pipeline failure.
+    "tendencies": {
+      "gemini":   "Short description of this model's tendencies",
+      "chatgpt":  "Short description of this model's tendencies",
+      "claude":   "Short description of this model's tendencies",
+      "deepseek": "Short description of this model's tendencies"
+    },
+
+    // Event IDs where all four models gave similar scores (low divergence)
+    "most_agreed": [123],
+
+    // Event IDs where models disagreed most sharply (high divergence)
+    "most_disputed": [456]
+  },
+
   // Events array — 8 to 15 items
   "events": [
     {
@@ -230,30 +255,6 @@ required unless marked optional.
       "agent_note": "Why the agent picked this event"
     }
   ],
-
-  // Cross-model analysis section — REQUIRED. Missing or incomplete model_analysis
-  // will cause the pipeline to fail and the digest will not be published.
-  "model_analysis": {
-    // 2-4 paragraphs of markdown prose comparing how the four models approached
-    // the events. Be specific: name events, quote scores, describe patterns.
-    "summary": "Markdown prose comparing how the 4 models treated these events",
-
-    // One-sentence characterization of each model's consistent tendencies
-    // across this digest's events. ALL FOUR KEYS ARE REQUIRED — omitting any
-    // one will cause a pipeline failure.
-    "tendencies": {
-      "gemini":   "Short description of this model's tendencies",
-      "chatgpt":  "Short description of this model's tendencies",
-      "claude":   "Short description of this model's tendencies",
-      "deepseek": "Short description of this model's tendencies"
-    },
-
-    // Event IDs where all four models gave similar scores (low divergence)
-    "most_agreed": [123],
-
-    // Event IDs where models disagreed most sharply (high divergence)
-    "most_disputed": [456]
-  },
 
   // Sources consulted during research (web search, web fetch)
   "sources": [

@@ -267,7 +267,7 @@ if (Array.isArray(digestJson.images)) {
 }
 if (!Array.isArray(digestJson.images) || digestJson.images.length === 0) {
   if (!digestJson.hero_image?.url) {
-    die(`Digest must have either "images" array (new) or "hero_image.url" (legacy).`);
+    die(`Digest must have either "images" array (new) or "hero_image.url" (legacy). Wavespeed image generation may have failed.`);
   }
   log("WARNING: using legacy hero_image field. Consider upgrading to images[].");
 } else {

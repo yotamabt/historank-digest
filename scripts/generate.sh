@@ -224,14 +224,27 @@ CLAUDE_EOF
     export CODEX_MODEL="${CODEX_MODEL:-gpt-5.4-mini}"
     export DIGEST_MODEL="$CODEX_MODEL"
 
-    # Substitute env vars into the TOML config template and write to the
-    # location codex reads automatically: ~/.codex/config.toml
+    # Sanity-check required variables before writing the config
+    [[ -z "${WAVESPEED_API_KEY:-}" ]] && { log "ERROR: WAVESPEED_API_KEY is not set — wavespeed MCP will fail to start."; exit 1; }
+    [[ -z "${HISTORANK_MCP_URL:-}" ]] && { log "ERROR: HISTORANK_MCP_URL is not set."; exit 1; }
+
     mkdir -p "$HOME/.codex"
     envsubst '${CODEX_MODEL} ${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL} ${DIGEST_DIR} ${PATH} ${NODE_PATH}' \
         < "${DIGEST_DIR}/agent-config/codex-config-template.yaml" \
         > "$HOME/.codex/config.yaml"
 
     log "Codex config written to ${HOME}/.codex/config.yaml"
+    log "Wavespeed MCP: key present=$([ -n "${WAVESPEED_API_KEY:-}" ] && echo yes || echo NO), path=${DIGEST_DIR}/wavespeed-mcp/index.js"
+
+    # Verify the wavespeed MCP subprocess starts correctly before handing off to codex
+    _WS_TEST_ERR=$(WAVESPEED_API_KEY="$WAVESPEED_API_KEY" WAVESPEED_MODEL="$WAVESPEED_MODEL" \
+        timeout 5 node "${DIGEST_DIR}/wavespeed-mcp/index.js" < /dev/null 2>&1 || true)
+    if echo "$_WS_TEST_ERR" | grep -q "ERROR:"; then
+      log "ERROR: wavespeed MCP subprocess failed pre-flight check: ${_WS_TEST_ERR}"
+      exit 1
+    fi
+    log "Wavespeed MCP pre-flight: OK"
+    unset _WS_TEST_ERR
 
     # Resolve codex binary: explicit env var > /usr/local/bin > PATH
     if [[ -n "${CODEX_BIN:-}" && -x "$CODEX_BIN" ]]; then
