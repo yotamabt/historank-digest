@@ -66,20 +66,39 @@ sed "s/{DATE}/${TODAY}/g" "$PROMPT_TEMPLATE" > "$PROMPT_TODAY"
 log "Prompt written to ${PROMPT_TODAY}"
 
 # ---------------------------------------------------------------------------
-# Determine which agent to use
+# Determine which agent to use + fallback chain
 # ---------------------------------------------------------------------------
-# DIGEST_AGENT env var: gemini | claude | codex | deepseek | auto (default)
-# "auto" rotates daily based on day-of-month modulo 4:
-#   0 → gemini, 1 → claude, 2 → codex, 3 → deepseek
+# DIGEST_AGENT: gemini | claude | codex | deepseek | auto (default)
+# DIGEST_AGENT_FALLBACKS: space-separated list of agents to try if primary fails
+#   e.g. DIGEST_AGENT_FALLBACKS="gemini claude" tries gemini then claude
+#   Defaults to trying all other agents in a fixed order.
 DIGEST_AGENT="${DIGEST_AGENT:-auto}"
 
+ALL_AGENTS=("gemini" "claude" "codex" "deepseek")
+
 if [[ "$DIGEST_AGENT" == "auto" ]]; then
-  AGENTS=("gemini" "claude" "codex" "deepseek")
-  DIGEST_AGENT="${AGENTS[$(( RANDOM % 4 ))]}"
+  DIGEST_AGENT="${ALL_AGENTS[$(( RANDOM % ${#ALL_AGENTS[@]} ))]}"
   log "Randomly selected agent: ${DIGEST_AGENT}"
 else
   log "Using configured agent: ${DIGEST_AGENT}"
 fi
+
+# Build the agent chain: primary first, then fallbacks (skip duplicates)
+if [[ -n "${DIGEST_AGENT_FALLBACKS:-}" ]]; then
+  read -ra _FALLBACKS <<< "$DIGEST_AGENT_FALLBACKS"
+else
+  # Default fallback: all other agents in fixed order
+  _FALLBACKS=()
+  for _a in "${ALL_AGENTS[@]}"; do
+    [[ "$_a" != "$DIGEST_AGENT" ]] && _FALLBACKS+=("$_a")
+  done
+fi
+AGENT_CHAIN=("$DIGEST_AGENT")
+for _a in "${_FALLBACKS[@]}"; do
+  [[ "$_a" != "$DIGEST_AGENT" ]] && AGENT_CHAIN+=("$_a")
+done
+unset _FALLBACKS _a
+
 export DIGEST_AGENT
 
 # ---------------------------------------------------------------------------
@@ -94,6 +113,8 @@ AGENT_RETRY_DELAY="${AGENT_RETRY_DELAY:-30}" # seconds between attempts
 
 AGENT_SUCCESS=false
 
+for DIGEST_AGENT in "${AGENT_CHAIN[@]}"; do
+  export DIGEST_AGENT
 for attempt in $(seq 1 "$AGENT_RETRIES"); do
   log "Attempt ${attempt}/${AGENT_RETRIES}: calling agent '${DIGEST_AGENT}' (timeout: ${AGENT_TIMEOUT}s)..."
   log "────────────────────────────────────────────────────────"
@@ -322,13 +343,13 @@ $(cat "$PROMPT_TODAY")"
 
   if [[ $EXIT_CODE -eq 0 ]]; then
     AGENT_SUCCESS=true
-    break
+    break 2
   elif [[ $EXIT_CODE -eq 124 ]]; then
-    log "ERROR: Agent timed out after ${AGENT_TIMEOUT}s — not retrying."
+    log "ERROR: Agent '${DIGEST_AGENT}' timed out after ${AGENT_TIMEOUT}s."
     log "Raw output (first 500 bytes): $(head -c 500 "$RAW_OUTPUT" 2>/dev/null || echo '(empty)')"
-    break
+    break  # timeout — don't retry same agent, try next in chain
   else
-    log "ERROR: Agent exited with status ${EXIT_CODE}."
+    log "ERROR: Agent '${DIGEST_AGENT}' exited with status ${EXIT_CODE}."
     log "Raw output (first 500 bytes): $(head -c 500 "$RAW_OUTPUT" 2>/dev/null || echo '(empty)')"
     if [[ $attempt -lt $AGENT_RETRIES ]]; then
       log "Retrying in ${AGENT_RETRY_DELAY}s..."
@@ -336,9 +357,11 @@ $(cat "$PROMPT_TODAY")"
     fi
   fi
 done
+  log "ERROR: All ${AGENT_RETRIES} attempt(s) with agent '${DIGEST_AGENT}' failed — trying next agent in chain."
+done
 
 if [[ $AGENT_SUCCESS != true ]]; then
-  log "ERROR: All ${AGENT_RETRIES} attempt(s) failed. Aborting."
+  log "ERROR: All agents in chain (${AGENT_CHAIN[*]}) failed. Aborting."
   exit 1
 fi
 
