@@ -9,7 +9,9 @@
       "args": ["${DIGEST_DIR}/wavespeed-mcp/index.js"],
       "env": {
         "WAVESPEED_API_KEY": "${WAVESPEED_API_KEY}",
-        "WAVESPEED_MODEL": "${WAVESPEED_MODEL}"
+        "WAVESPEED_MODEL": "${WAVESPEED_MODEL}",
+        "PATH": "${PATH}",
+        "NODE_PATH": "${NODE_PATH}"
       }
     }
   }

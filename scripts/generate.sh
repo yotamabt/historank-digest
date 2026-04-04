@@ -153,11 +153,21 @@ for attempt in $(seq 1 "$AGENT_RETRIES"); do
   elif [[ "$DIGEST_AGENT" == "claude" ]]; then
     # Substitute env vars into the MCP config template
     CLAUDE_MCP_RUNTIME="/tmp/claude-mcp.json"
-    envsubst '${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL} ${DIGEST_DIR}' \
+    envsubst '${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL} ${DIGEST_DIR} ${PATH} ${NODE_PATH}' \
         < "${DIGEST_DIR}/agent-config/claude-mcp-template.json" \
         > "$CLAUDE_MCP_RUNTIME"
 
     log "Claude Code MCP config written to ${CLAUDE_MCP_RUNTIME}"
+
+    # Verify wavespeed MCP subprocess starts correctly before handing off to claude
+    _WS_TEST_ERR=$(WAVESPEED_API_KEY="$WAVESPEED_API_KEY" WAVESPEED_MODEL="$WAVESPEED_MODEL" \
+        timeout 5 node "${DIGEST_DIR}/wavespeed-mcp/index.js" < /dev/null 2>&1 || true)
+    if echo "$_WS_TEST_ERR" | grep -q "ERROR:"; then
+      log "ERROR: wavespeed MCP subprocess failed pre-flight check: ${_WS_TEST_ERR}"
+      exit 1
+    fi
+    log "Wavespeed MCP pre-flight: OK (key present=$([ -n "${WAVESPEED_API_KEY:-}" ] && echo yes || echo NO))"
+    unset _WS_TEST_ERR
 
 
     # Write a temp script so we avoid quoting issues with large prompt content.
