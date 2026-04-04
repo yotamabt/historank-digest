@@ -84,6 +84,11 @@ if (isStreamJson) {
         finalMessage = event.content;
       }
 
+      // --- Claude Code CLI: result event contains the full final assistant output ---
+      if (event?.type === "result" && event?.subtype === "success" && typeof event?.result === "string") {
+        finalMessage = event.result;
+      }
+
       // --- DeepSeek: supplementary model_analysis + sources ---
       if (event?.type === "supplementary_message" && event?.role === "assistant" && typeof event?.content === "string") {
         supplementaryMessage = event.content;
