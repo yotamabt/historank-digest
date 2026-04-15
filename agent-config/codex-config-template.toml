@@ -11,9 +11,11 @@ type = "http"
 url = "${HISTORANK_MCP_URL}"
 
 [mcp_servers.wavespeed]
-command = "node"
+type = "stdio"
+command = "/usr/local/bin/node"
 args = ["${DIGEST_DIR}/wavespeed-mcp/index.js"]
 
 [mcp_servers.wavespeed.env]
 WAVESPEED_API_KEY = "${WAVESPEED_API_KEY}"
 WAVESPEED_MODEL = "${WAVESPEED_MODEL}"
+PATH = "${PATH}"

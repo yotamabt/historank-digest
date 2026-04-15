@@ -79,6 +79,9 @@ Good theme criteria:
 - Offers a narrative angle that is not obvious — ask yourself: what would surprise an
   educated reader?
 - Is not a theme used in the last 7 days (check recent digests if possible).
+- Must use a **different `type`** than yesterday's digest. Check the most recent digest
+  in the index to find yesterday's `theme.type`, then pick a different one. For example,
+  if yesterday was `topic`, choose `country`, `region`, `category`, or `period` today.
 
 Bad themes: generic ("Important Battles"), too broad to have a coherent narrative
 ("All of European History"), or too narrow to find enough events.

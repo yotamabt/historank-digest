@@ -266,8 +266,12 @@ CLAUDE_EOF
     envsubst '${CODEX_MODEL} ${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL} ${DIGEST_DIR} ${PATH} ${NODE_PATH}' \
         < "${DIGEST_DIR}/agent-config/codex-config-template.yaml" \
         > "$HOME/.codex/config.yaml"
+    # Also write TOML — codex prefers config.toml over config.yaml when both exist
+    envsubst '${CODEX_MODEL} ${HISTORANK_MCP_URL} ${WAVESPEED_API_KEY} ${WAVESPEED_MODEL} ${DIGEST_DIR} ${PATH} ${NODE_PATH}' \
+        < "${DIGEST_DIR}/agent-config/codex-config-template.toml" \
+        > "$HOME/.codex/config.toml"
 
-    log "Codex config written to ${HOME}/.codex/config.yaml"
+    log "Codex config written to ${HOME}/.codex/config.yaml and config.toml"
     log "Wavespeed MCP: key present=$([ -n "${WAVESPEED_API_KEY:-}" ] && echo yes || echo NO), path=${DIGEST_DIR}/wavespeed-mcp/index.js"
 
     # Verify the wavespeed MCP subprocess starts correctly before handing off to codex

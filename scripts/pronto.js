@@ -23,15 +23,27 @@ export async function uploadImageFromUrl(sourceUrl, filename) {
   const apiKey = process.env.PRONTO_API_KEY;
   if (!apiKey) throw new Error("PRONTO_API_KEY is not set.");
 
-  // 1. Download the image
+  // 1. Download the image (retry up to 3 times on 429 with exponential backoff)
   let imgRes;
-  try {
-    imgRes = await fetch(sourceUrl);
-  } catch (err) {
-    throw new Error(`Network error fetching image from ${sourceUrl}: ${err.message}`);
-  }
-  if (!imgRes.ok) {
-    throw new Error(`Failed to fetch image from ${sourceUrl}: HTTP ${imgRes.status}`);
+  const MAX_FETCH_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+    try {
+      imgRes = await fetch(sourceUrl);
+    } catch (err) {
+      throw new Error(`Network error fetching image from ${sourceUrl}: ${err.message}`);
+    }
+    if (imgRes.status === 429) {
+      if (attempt === MAX_FETCH_ATTEMPTS) {
+        throw new Error(`Failed to fetch image from ${sourceUrl}: HTTP 429 after ${MAX_FETCH_ATTEMPTS} attempts`);
+      }
+      const delay = Math.pow(2, attempt) * 1000; // 2s, 4s
+      await new Promise((r) => setTimeout(r, delay));
+      continue;
+    }
+    if (!imgRes.ok) {
+      throw new Error(`Failed to fetch image from ${sourceUrl}: HTTP ${imgRes.status}`);
+    }
+    break;
   }
   const rawBuffer = Buffer.from(await imgRes.arrayBuffer());
 
