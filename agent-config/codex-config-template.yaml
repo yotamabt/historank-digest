@@ -13,7 +13,7 @@ mcp_servers:
     type: http
     url: "${HISTORANK_MCP_URL}"
   wavespeed:
-    command: node
+    command: /usr/local/bin/node
     args:
       - ${DIGEST_DIR}/wavespeed-mcp/index.js
     env:
