@@ -5,7 +5,7 @@
       "url": "${HISTORANK_MCP_URL}"
     },
     "wavespeed": {
-      "command": "node",
+      "command": "/usr/local/bin/node",
       "args": ["${DIGEST_DIR}/wavespeed-mcp/index.js"],
       "env": {
         "WAVESPEED_API_KEY": "${WAVESPEED_API_KEY}",
