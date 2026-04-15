@@ -198,6 +198,9 @@ for attempt in $(seq 1 "$AGENT_RETRIES"); do
 # Fix HOME/USER so Claude doesn't detect a root environment
 export HOME="$_CLAUDE_HOME"
 export USER="$(id -un)"
+# Change to agent's home so child processes (MCP subprocesses) don't inherit
+# /root as CWD, which the agent user cannot access.
+cd "$HOME"
 exec "$_CLAUDE_BIN" \
     --output-format stream-json \
     --verbose \
