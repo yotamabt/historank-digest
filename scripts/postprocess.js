@@ -164,8 +164,7 @@ function tryParseJson(text, label) {
   return null;
 }
 
-// Strategy 1: look for ```json ... ``` fences — try from last to first
-// (model may emit multiple fences; the last complete one is the digest)
+// Strategy 1: look for ```json ... ``` fences
 const fenceRegex = /```json\s*([\s\S]*?)```/g;
 const fences = [];
 let fm;
@@ -173,15 +172,38 @@ while ((fm = fenceRegex.exec(responseText)) !== null) {
   fences.push(fm[1].trim());
 }
 if (fences.length > 0) {
-  for (let i = fences.length - 1; i >= 0; i--) {
-    digestJson = tryParseJson(fences[i], `\`\`\`json fence #${i + 1}`);
-    if (digestJson) {
-      log(`Extracted digest JSON from \`\`\`json fence #${i + 1} of ${fences.length}.`);
-      break;
+  const isClaudeModel = typeof actualModel === "string" && actualModel.toLowerCase().includes("claude");
+
+  // Claude is instructed to split output into 3 fences to avoid truncation.
+  // Merge all parseable fences into one object when the model is Claude.
+  if (isClaudeModel && fences.length > 1) {
+    const merged = {};
+    let mergedCount = 0;
+    for (let i = 0; i < fences.length; i++) {
+      const parsed = tryParseJson(fences[i], `\`\`\`json fence #${i + 1}`);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        Object.assign(merged, parsed);
+        mergedCount++;
+      }
     }
-  }
-  if (!digestJson) {
-    log(`WARNING: Found ${fences.length} \`\`\`json fence(s) but none parsed — falling through to outermost-brace strategy.`);
+    if (mergedCount > 0) {
+      digestJson = merged;
+      log(`Merged ${mergedCount} of ${fences.length} \`\`\`json fences (Claude multi-fence output).`);
+    } else {
+      log(`WARNING: Found ${fences.length} \`\`\`json fence(s) for Claude but none parsed — falling through to outermost-brace strategy.`);
+    }
+  } else {
+    // Non-Claude agents: take the last complete fence (existing behaviour)
+    for (let i = fences.length - 1; i >= 0; i--) {
+      digestJson = tryParseJson(fences[i], `\`\`\`json fence #${i + 1}`);
+      if (digestJson) {
+        log(`Extracted digest JSON from \`\`\`json fence #${i + 1} of ${fences.length}.`);
+        break;
+      }
+    }
+    if (!digestJson) {
+      log(`WARNING: Found ${fences.length} \`\`\`json fence(s) but none parsed — falling through to outermost-brace strategy.`);
+    }
   }
 }
 

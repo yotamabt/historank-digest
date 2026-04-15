@@ -178,7 +178,7 @@ for attempt in $(seq 1 "$AGENT_RETRIES"); do
     # expansion at write time — the script reads the files when it executes.
     CLAUDE_SCRIPT=$(mktemp /tmp/claude-run-XXXXXX.sh)
     export _CLAUDE_MCP="$CLAUDE_MCP_RUNTIME"
-    export _CLAUDE_SYSTEM="$DIGEST_DIR/AGENT.md"
+    export _CLAUDE_SYSTEM="$DIGEST_DIR/AGENT-claude.md"
     export _CLAUDE_PROMPT="$PROMPT_TODAY"
     export _CLAUDE_BIN
     # Prefer /usr/local/bin/claude (accessible to all users) over a root-home install
