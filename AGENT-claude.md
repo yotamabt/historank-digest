@@ -287,19 +287,42 @@ required unless marked optional.
 - If `wavespeed.generate_image` fails, omit that image entirely from the `images` array. Never retry image generation more than once per image.
 - If you are stuck and cannot make progress after 2 attempts on any single step, skip that step and write the best digest you can with what you have.
 
-**Output format**
-Output the digest as **three separate ` ```json ` fences in sequence**, with no prose between them.
-The pipeline merges them automatically — do not combine them into one fence.
+**Output format — three separate fences, no exceptions**
 
-Fence 1 — header and content (`id`, `date`, `generated_at`, `theme`, `images`, `narrative`, `visualizations`):
+Output **exactly three ` ```json ` fences** in order. No prose before, between, or after them.
+The pipeline merges them — combining them into one fence will break the pipeline.
 
-Fence 2 — events only (`events`):
+**Fence 1** (`id`, `date`, `generated_at`, `theme`, `images`, `narrative`, `visualizations`):
+```json
+{
+  "id": "YYYY-MM-DD",
+  "date": "YYYY-MM-DD",
+  "generated_at": "...",
+  "theme": { ... },
+  "images": [ ... ],
+  "narrative": [ ... ],
+  "visualizations": [ ... ]
+}
+```
 
-Fence 3 — analysis, sources, meta (`model_analysis`, `sources`, `meta`):
+**Fence 2** (`events` only):
+```json
+{
+  "events": [ ... ]
+}
+```
 
-- Do not include `//` comments in the actual output (they are only in this schema for
-  your guidance). Each fence must be valid, parseable JSON.
-- Do not merge the three fences into one — output them as three separate fenced blocks.
+**Fence 3** (`model_analysis`, `sources`, `meta`):
+```json
+{
+  "model_analysis": { ... },
+  "sources": [ ... ],
+  "meta": { ... }
+}
+```
+
+- No `//` comments in output. Each fence must be valid, parseable JSON.
+- Output fence 1, then fence 2, then fence 3 — nothing else.
 
 **Intellectual honesty**
 - Never invent ratings, scores, or explanations. All values in `ratings` must come

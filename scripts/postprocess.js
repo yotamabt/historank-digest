@@ -106,8 +106,14 @@ if (isStreamJson) {
     } catch { /* skip malformed lines */ }
   }
   const totalChunks = deltaChunks.length + blockChunks.length;
-  // Prefer final_message (clean final turn) over noisy concatenated deltas
-  if (finalMessage !== null) {
+  const isClaudeModel = typeof actualModel === "string" && actualModel.toLowerCase().includes("claude");
+  // Claude emits multi-fence output split across streaming deltas; the result
+  // event only contains the final fence. Always use delta chunks for Claude so
+  // all fences are present. For other agents prefer the clean final_message.
+  if (isClaudeModel && deltaChunks.length > 0) {
+    responseText = deltaChunks.join("");
+    log("Claude model detected — using concatenated delta chunks (result event is truncated for multi-fence output).");
+  } else if (finalMessage !== null) {
     responseText = finalMessage;
     log("Using final_message event for response extraction.");
   } else {
@@ -172,8 +178,6 @@ while ((fm = fenceRegex.exec(responseText)) !== null) {
   fences.push(fm[1].trim());
 }
 if (fences.length > 0) {
-  const isClaudeModel = typeof actualModel === "string" && actualModel.toLowerCase().includes("claude");
-
   // Claude is instructed to split output into 3 fences to avoid truncation.
   // Merge all parseable fences into one object when the model is Claude.
   if (isClaudeModel && fences.length > 1) {
