@@ -45,6 +45,7 @@ try {
 } catch { /* not JSON at all */ }
 
 let actualModel = null;
+let isClaudeModel = false;
 let supplementaryMessage = null; // DeepSeek follow-up with model_analysis + sources
 let generatedImageUrls = null;   // Real URLs from generate_image tool calls
 if (isStreamJson) {
@@ -106,7 +107,7 @@ if (isStreamJson) {
     } catch { /* skip malformed lines */ }
   }
   const totalChunks = deltaChunks.length + blockChunks.length;
-  const isClaudeModel = typeof actualModel === "string" && actualModel.toLowerCase().includes("claude");
+  isClaudeModel = typeof actualModel === "string" && actualModel.toLowerCase().includes("claude");
   // Claude emits multi-fence output split across streaming deltas; the result
   // event only contains the final fence. Always use delta chunks for Claude so
   // all fences are present. For other agents prefer the clean final_message.
