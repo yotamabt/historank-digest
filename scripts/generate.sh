@@ -107,6 +107,11 @@ export DIGEST_AGENT
 AGENT_TIMEOUT="${AGENT_TIMEOUT:-1200}"       # 20 minutes per attempt
 AGENT_RETRIES="${AGENT_RETRIES:-2}"          # total attempts (1 = no retry)
 AGENT_RETRY_DELAY="${AGENT_RETRY_DELAY:-30}" # seconds between attempts
+POSTPROCESS_RETRIES="${POSTPROCESS_RETRIES:-1}" # extra full reruns if postprocess fails
+
+PIPELINE_SUCCESS=false
+for _pp_attempt in $(seq 1 $(( POSTPROCESS_RETRIES + 1 ))); do
+  [[ $_pp_attempt -gt 1 ]] && log "Postprocess retry ${_pp_attempt}/$(( POSTPROCESS_RETRIES + 1 )): re-running agent..."
 
 # Truncate RAW_OUTPUT before each run
 > "$RAW_OUTPUT"
@@ -377,17 +382,29 @@ done
   log "ERROR: All ${AGENT_RETRIES} attempt(s) with agent '${DIGEST_AGENT}' failed — trying next agent in chain."
 done
 
-if [[ $AGENT_SUCCESS != true ]]; then
-  log "ERROR: All agents in chain (${AGENT_CHAIN[*]}) failed. Aborting."
-  exit 1
-fi
+  if [[ $AGENT_SUCCESS != true ]]; then
+    log "ERROR: All agents in chain (${AGENT_CHAIN[*]}) failed. Aborting."
+    exit 1
+  fi
 
-log "────────────────────────────────────────────────────────"
-log "Agent finished. Raw output: ${RAW_OUTPUT} ($(wc -c < "$RAW_OUTPUT") bytes)"
-log "Running postprocess.js..."
+  log "────────────────────────────────────────────────────────"
+  log "Agent finished. Raw output: ${RAW_OUTPUT} ($(wc -c < "$RAW_OUTPUT") bytes)"
+  log "Running postprocess.js (pipeline attempt ${_pp_attempt}/$(( POSTPROCESS_RETRIES + 1 )))..."
 
-if ! node "${DIGEST_DIR}/scripts/postprocess.js"; then
-  log "ERROR: postprocess.js exited with non-zero status. Aborting."
+  if node "${DIGEST_DIR}/scripts/postprocess.js"; then
+    PIPELINE_SUCCESS=true
+    break
+  fi
+
+  log "ERROR: postprocess.js failed on pipeline attempt ${_pp_attempt}."
+  if [[ $_pp_attempt -le $POSTPROCESS_RETRIES ]]; then
+    log "Retrying full agent run in ${AGENT_RETRY_DELAY}s..."
+    sleep "$AGENT_RETRY_DELAY"
+  fi
+done
+
+if [[ $PIPELINE_SUCCESS != true ]]; then
+  log "ERROR: postprocess.js failed after $(( POSTPROCESS_RETRIES + 1 )) pipeline attempt(s). Aborting."
   exit 1
 fi
 
