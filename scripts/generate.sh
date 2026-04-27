@@ -321,7 +321,6 @@ $(cat "$PROMPT_TODAY")"
 
     timeout "$AGENT_TIMEOUT" "$_CODEX_BIN" exec \
         --full-auto \
-        --sandbox danger-full-access \
         --json \
         --ephemeral \
         "$CODEX_PROMPT" \

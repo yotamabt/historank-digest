@@ -7,7 +7,7 @@
 model = "${CODEX_MODEL}"
 
 [mcp_servers.historank]
-type = "http"
+type = "sse"
 url = "${HISTORANK_MCP_URL}"
 
 [mcp_servers.wavespeed]

@@ -10,7 +10,7 @@ model: ${CODEX_MODEL}
 # google_web_search and web_fetch are built-in to the Codex CLI.
 mcp_servers:
   historank:
-    type: http
+    type: sse
     url: "${HISTORANK_MCP_URL}"
   wavespeed:
     type: stdio
