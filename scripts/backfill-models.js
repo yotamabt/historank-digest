@@ -38,8 +38,14 @@ const get = (flag) => {
 const has = (flag) => args.includes(flag);
 
 const outputDir = get("--output-dir") || process.env.OUTPUT_DIR || "/var/www/historank/digests";
+console.log(`Output dir: ${outputDir}`);
 const fallbackModel = get("--model") || null;
-const replaceValue = get("--replace") || "auto";
+// --replace can be an exact value or a prefix ending with "*" (e.g. "auto*")
+const replaceArg = get("--replace") || "auto*";
+const replaceIsPrefix = replaceArg.endsWith("*");
+const replaceValue = replaceIsPrefix ? replaceArg.slice(0, -1) : replaceArg;
+const shouldReplace = (model) =>
+  replaceIsPrefix ? (model ?? "").startsWith(replaceValue) : model === replaceValue;
 const dryRun = has("--dry-run");
 
 // ---------------------------------------------------------------------------
@@ -141,7 +147,7 @@ for (const filePath of digestFiles) {
   const date = digest.date || path.basename(filePath, ".json");
   const currentModel = digest.meta?.model;
 
-  if (currentModel !== replaceValue) continue;
+  if (!shouldReplace(currentModel)) continue;
 
   const newModel = dateModelMap[date] || fallbackModel;
   if (!newModel) {
