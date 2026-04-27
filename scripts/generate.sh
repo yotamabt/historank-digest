@@ -391,7 +391,7 @@ done
   log "Agent finished. Raw output: ${RAW_OUTPUT} ($(wc -c < "$RAW_OUTPUT") bytes)"
   log "Running postprocess.js (pipeline attempt ${_pp_attempt}/$(( POSTPROCESS_RETRIES + 1 )))..."
 
-  if node "${DIGEST_DIR}/scripts/postprocess.js"; then
+  if node "${DIGEST_DIR}/scripts/postprocess.js" 2>&1 | tee -a "$LOG_FILE"; then
     PIPELINE_SUCCESS=true
     break
   fi

@@ -379,17 +379,17 @@ if (digestJson.events.length < 5) {
 log(`Validation passed: ${digestJson.events.length} events, all 4 model ratings present.`);
 
 // --- Stamp the actual model used ---
-// Prefer the model name from the stream-json init event; fall back to the
-// DIGEST_AGENT env var set by generate.sh (covers codex and other agents
-// that don't emit an init event).
+// Prefer the model name from the stream-json init event (ground truth — the
+// agent reports the real resolved name even when invoked with "--model auto").
+// Fall back to DIGEST_MODEL env for agents that don't emit an init event (Codex).
+// Skip DIGEST_MODEL if it is the sentinel value "auto" to avoid persisting it.
 log(`DIGEST_MODEL env: ${process.env.DIGEST_MODEL ?? "(not set)"}, actualModel: ${actualModel ?? "(not set)"}`);
-// DIGEST_MODEL (set by generate.sh) always wins — it knows the real model name.
-// actualModel (from stream-json init event) is used only as a fallback.
-const resolvedModel = process.env.DIGEST_MODEL ?? actualModel ?? null;
+const digestModelEnv = process.env.DIGEST_MODEL === "auto" ? null : (process.env.DIGEST_MODEL ?? null);
+const resolvedModel = actualModel ?? digestModelEnv ?? null;
 if (resolvedModel) {
   if (!digestJson.meta) digestJson.meta = {};
   digestJson.meta.model = resolvedModel;
-  log(`Stamped meta.model = "${resolvedModel}" (${process.env.DIGEST_MODEL ? "DIGEST_MODEL env" : "stream-json init event"}).`);
+  log(`Stamped meta.model = "${resolvedModel}" (${actualModel ? "stream-json init event" : "DIGEST_MODEL env"}).`);
 }
 
 // --- Upload images to Pronto.io (if PRONTO_API_KEY is set) ---
