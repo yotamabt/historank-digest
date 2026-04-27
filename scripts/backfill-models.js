@@ -96,6 +96,10 @@ if (logFilePath) {
     const lines = fs.readFileSync(logFilePath, "utf8").split("\n");
     let currentDate = null;
     for (const line of lines) {
+      // Skip JSON lines (Codex aggregated_output) — they can contain generate.sh
+      // source code verbatim, which would cause false matches on the patterns below.
+      if (line.startsWith("{")) continue;
+
       const dateMatch = line.match(/=== HistoRank digest generation started for (\d{4}-\d{2}-\d{2})/);
       if (dateMatch) {
         currentDate = dateMatch[1];
@@ -104,18 +108,24 @@ if (logFilePath) {
       if (!currentDate) continue;
 
       // "[postprocess] DIGEST_MODEL env: auto, actualModel: gemini-2.5-pro"
-      const actualModelMatch = line.match(/actualModel:\s*([^\s,)]+)/);
-      if (actualModelMatch) {
-        const m = actualModelMatch[1];
-        if (m !== "(not" && m !== "null" && m !== "auto") {
-          if (!dateModelMap[currentDate]) dateModelMap[currentDate] = m;
+      // Only match lines that actually come from postprocess.js output.
+      if (line.startsWith("[postprocess]")) {
+        const actualModelMatch = line.match(/actualModel:\s*([^\s,)]+)/);
+        if (actualModelMatch) {
+          const m = actualModelMatch[1];
+          if (m !== "(not" && m !== "null" && m !== "auto") {
+            if (!dateModelMap[currentDate]) dateModelMap[currentDate] = m;
+          }
         }
       }
 
       // "[TIMESTAMP] Gemini model: gemini-2.5-flash" (only when not "auto")
-      const geminiMatch = line.match(/Gemini model:\s*(\S+)/);
-      if (geminiMatch && geminiMatch[1] !== "auto") {
-        if (!dateModelMap[currentDate]) dateModelMap[currentDate] = geminiMatch[1];
+      // Only match timestamped lines from generate.sh's log() function.
+      if (/^\[\d{4}-\d{2}-\d{2}T/.test(line)) {
+        const geminiMatch = line.match(/Gemini model:\s*(\S+)/);
+        if (geminiMatch && geminiMatch[1] !== "auto") {
+          if (!dateModelMap[currentDate]) dateModelMap[currentDate] = geminiMatch[1];
+        }
       }
     }
     console.log(`Found model info for ${Object.keys(dateModelMap).length} date(s) in log.\n`);
