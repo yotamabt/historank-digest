@@ -135,9 +135,11 @@ for attempt in $(seq 1 "$AGENT_RETRIES"); do
     GEMINI_STDOUT_TMP=$(mktemp /tmp/gemini-stdout-XXXXXX)
     GEMINI_STDERR_TMP=$(mktemp /tmp/gemini-stderr-XXXXXX)
 
-    # Tail stderr live so Gemini's tool-call activity is visible in the log
+    # Tail both stdout (stream-json events / tool activity) and stderr (errors) live
+    tail -f "$GEMINI_STDOUT_TMP" >&2 &
+    GEMINI_TAIL_OUT_PID=$!
     tail -f "$GEMINI_STDERR_TMP" >&2 &
-    GEMINI_TAIL_PID=$!
+    GEMINI_TAIL_ERR_PID=$!
 
     timeout "$AGENT_TIMEOUT" gemini \
         --model "$GEMINI_MODEL" \
@@ -147,8 +149,8 @@ for attempt in $(seq 1 "$AGENT_RETRIES"); do
         > "$GEMINI_STDOUT_TMP" \
         2> "$GEMINI_STDERR_TMP" || EXIT_CODE=$?
 
-    kill -9 "$GEMINI_TAIL_PID" 2>/dev/null
-    wait "$GEMINI_TAIL_PID" 2>/dev/null || true
+    kill -9 "$GEMINI_TAIL_OUT_PID" "$GEMINI_TAIL_ERR_PID" 2>/dev/null
+    wait "$GEMINI_TAIL_OUT_PID" "$GEMINI_TAIL_ERR_PID" 2>/dev/null || true
 
     cat "$GEMINI_STDERR_TMP" >> "$LOG_FILE"
     cp "$GEMINI_STDOUT_TMP" "$RAW_OUTPUT"

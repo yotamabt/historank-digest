@@ -287,43 +287,82 @@ async function runDeepSeek(systemPrompt, userPrompt, tools) {
 
     const toolCalls = Object.values(toolCallMap);
     if (toolCalls.length === 0) {
-      // If the output looks complete (ends with }) emit as-is.
-      // Otherwise continue from where it was cut off — this is much faster
-      // than regenerating the whole JSON.
-      const trimmed = fullText.trimEnd();
       if (generatedImageUrls.length > 0) {
         emit({ type: "generated_image_urls", urls: generatedImageUrls });
         process.stderr.write(`[deepseek-agent] Emitted ${generatedImageUrls.length} real image URLs.\n`);
       }
 
-      if (trimmed.endsWith("}")) {
-        emit({ type: "final_message", role: "assistant", content: fullText });
-      } else {
-        process.stderr.write(`[deepseek-agent] Output appears truncated — requesting continuation...\n`);
-        const continuationMessages = [
-          {
-            role: "user",
-            content:
-              "The following JSON digest was cut off mid-output. Continue it " +
-              "from exactly where it ends, completing all missing fields " +
-              "(especially model_analysis and sources). " +
-              "Output ONLY the continuation text — do not repeat what is already there.\n\n" +
-              fullText.slice(-3000),
-          },
-        ];
-        let continuation = "";
-        const contStream = await client.chat.completions.create({
-          model: toolModel,
-          messages: continuationMessages,
-          max_tokens: 8192,
+      if (outputModel !== toolModel) {
+        // Research loop finished — hand off to the output model (larger output
+        // window, no tool calls) to write the final JSON in one uninterrupted shot.
+        if (fullText.trim()) {
+          messages.push({ role: "assistant", content: fullText });
+        }
+        messages.push({
+          role: "user",
+          content:
+            "Research complete. Now write the complete digest JSON.\n" +
+            "Output ONLY a single ```json ... ``` code fence containing the complete object. " +
+            "No prose before or after the fence.",
+        });
+
+        process.stderr.write(`[deepseek-agent] Switching to output model: ${outputModel}\n`);
+        emitInit(outputModel);
+
+        let finalOutput = "";
+        const finalStream = await client.chat.completions.create({
+          model: outputModel,
+          messages,
+          max_tokens: 32000,
           stream: true,
         });
-        for await (const chunk of contStream) {
+        for await (const chunk of finalStream) {
           const d = chunk.choices[0]?.delta;
-          if (d?.content) continuation += d.content;
+          if (d?.content) {
+            emitText(d.content);
+            finalOutput += d.content;
+          }
         }
-        emit({ type: "final_message", role: "assistant", content: fullText + continuation });
-        process.stderr.write(`[deepseek-agent] Continuation complete (${continuation.length} chars).\n`);
+        emit({ type: "final_message", role: "assistant", content: finalOutput });
+        process.stderr.write(`[deepseek-agent] Output model complete (${finalOutput.length} chars).\n`);
+      } else {
+        // toolModel === outputModel: single-model path.
+        // If the output ended cleanly emit as-is, otherwise request a continuation
+        // with explicit format instructions to avoid it wrapping in a new code fence.
+        const trimmed = fullText.trimEnd();
+        if (trimmed.endsWith("}")) {
+          emit({ type: "final_message", role: "assistant", content: fullText });
+        } else {
+          process.stderr.write(`[deepseek-agent] Output appears truncated — requesting continuation...\n`);
+          const continuationMessages = [
+            {
+              role: "system",
+              content:
+                "You are completing a truncated JSON digest object. " +
+                "Output ONLY the raw JSON continuation — no markdown fences, no prose, no repeated content. " +
+                "The output must complete the JSON structure so the combined text becomes valid JSON.",
+            },
+            {
+              role: "user",
+              content:
+                "Continue this truncated JSON digest from exactly where it ends:\n\n" +
+                fullText.slice(-3000),
+            },
+          ];
+          let continuation = "";
+          const contStream = await client.chat.completions.create({
+            model: toolModel,
+            messages: continuationMessages,
+            max_tokens: 8192,
+            stream: true,
+          });
+          for await (const chunk of contStream) {
+            const d = chunk.choices[0]?.delta;
+            if (d?.content) continuation += d.content;
+          }
+          emit({ type: "final_message", role: "assistant", content: fullText + continuation });
+          process.stderr.write(`[deepseek-agent] Continuation complete (${continuation.length} chars).\n`);
+        }
       }
       break;
     }
