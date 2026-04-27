@@ -28,6 +28,22 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ---------------------------------------------------------------------------
+// Load .env from project root so OUTPUT_DIR etc. are available
+// ---------------------------------------------------------------------------
+const envFile = path.join(__dirname, "..", ".env");
+if (fs.existsSync(envFile)) {
+  for (const line of fs.readFileSync(envFile, "utf8").split("\n")) {
+    const clean = line.replace(/\r/, "").trim();
+    if (!clean || clean.startsWith("#")) continue;
+    const eq = clean.indexOf("=");
+    if (eq === -1) continue;
+    const key = clean.slice(0, eq).trim();
+    const val = clean.slice(eq + 1).trim().replace(/^["']|["']$/g, "");
+    if (!(key in process.env)) process.env[key] = val;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Parse CLI args
 // ---------------------------------------------------------------------------
 const args = process.argv.slice(2);
