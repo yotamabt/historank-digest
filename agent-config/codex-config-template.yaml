@@ -6,6 +6,10 @@
 
 model: ${CODEX_MODEL}
 
+projects:
+  "${DIGEST_DIR}":
+    trust_level: trusted
+
 # The MCP servers provide historank event data and image generation.
 # google_web_search and web_fetch are built-in to the Codex CLI.
 mcp_servers:

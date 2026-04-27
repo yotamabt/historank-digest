@@ -6,6 +6,9 @@
 
 model = "${CODEX_MODEL}"
 
+[projects."${DIGEST_DIR}"]
+trust_level = "trusted"
+
 [mcp_servers.historank]
 type = "sse"
 url = "${HISTORANK_MCP_URL}"
